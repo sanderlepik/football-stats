@@ -1,8 +1,10 @@
 from rest_framework import viewsets
 
-from core.models import Country, Season, Competition, Team, Player, Contract
+from core.models import Country, Season, Competition, Team, Player, Contract, Match, MatchPlayer, Goal, Substitution, \
+    Booking, Assist
 from core.serializers import CountrySerializer, SeasonSerializer, CompetitionSerializer, TeamSerializer, \
-    PlayerSerializer, ContractSerializer
+    PlayerSerializer, ContractSerializer, MatchSerializer, MatchPlayerSerializer, GoalSerializer, AssistSerializer, \
+    BookingSerializer, SubstitutionSerializer
 
 
 class CountryViewSet(viewsets.ModelViewSet):
@@ -57,9 +59,69 @@ class PlayerViewSet(viewsets.ModelViewSet):
 
 class ContractViewSet(viewsets.ModelViewSet):
     """
-    CRUD Team
+    CRUD Contract
     ---
-    request_serializer: TeamSerializer
+    request_serializer: ContractSerializer
     """
     serializer_class = ContractSerializer
     queryset = Contract.objects.all()
+
+
+class MatchViewSet(viewsets.ModelViewSet):
+    """
+    CRUD Team
+    ---
+    request_serializer: MatchSerializer
+    """
+    serializer_class = MatchSerializer
+    queryset = Match.objects.all()
+
+
+class MatchPlayerViewSet(viewsets.ModelViewSet):
+    """
+    CRUD Team
+    ---
+    request_serializer: MatchPlayerSerializer
+    """
+    serializer_class = MatchPlayerSerializer
+    queryset = MatchPlayer.objects.all()
+
+
+class GoalViewSet(viewsets.ModelViewSet):
+    """
+    CRUD Goal
+    ---
+    request_serializer: GoalSerializer
+    """
+    serializer_class = GoalSerializer
+    queryset = Goal.objects.all()
+
+
+class AssistViewSet(viewsets.ModelViewSet):
+    """
+    CRUD Assist
+    ---
+    request_serializer: AssistSerializer
+    """
+    serializer_class = AssistSerializer
+    queryset = Assist.objects.all()
+
+
+class BookingViewSet(viewsets.ModelViewSet):
+    """
+    CRUD Booking
+    ---
+    request_serializer: BookingSerializer
+    """
+    serializer_class = BookingSerializer
+    queryset = Booking.objects.all()
+
+
+class SubstitutionViewSet(viewsets.ModelViewSet):
+    """
+    CRUD Substitution
+    ---
+    request_serializer: SubstitutionSerializer
+    """
+    serializer_class = SubstitutionSerializer
+    queryset = Substitution.objects.all()
