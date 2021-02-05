@@ -1,5 +1,5 @@
 from django.contrib import admin
-from core.models import Country, Team, Player, Season, Contract, League, Match, MatchPlayer, Goal, Assist, Stadium
+from core.models import Country, Team, Player, Season, Contract, Competition, Match, MatchPlayer, Goal, Assist, Stadium
 
 
 class MatchAdmin(admin.ModelAdmin):
@@ -16,7 +16,7 @@ admin.site.register(Country)
 admin.site.register(Player)
 admin.site.register(Season)
 admin.site.register(Contract, ContractAdmin)
-admin.site.register(League)
+admin.site.register(Competition)
 admin.site.register(MatchPlayer)
 admin.site.register(Goal)
 admin.site.register(Assist)

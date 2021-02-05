@@ -14,20 +14,31 @@ class Country(models.Model):
         return self.name
 
 
-class League(models.Model):
-    name = models.CharField(max_length=75, null=False, blank=False)
-    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+class Season(models.Model):
+    year = models.IntegerField(null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return str(self.year)
+
+
+class Competition(models.Model):
+    name = models.CharField(max_length=75, null=False, blank=False)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+    season = models.ForeignKey(Season, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.name} | {self.season.year}"
 
 
 class Team(models.Model):
     name = models.CharField(max_length=20, null=False, blank=False)
-    league = models.ForeignKey(League, on_delete=models.CASCADE)
+    competitions = models.ManyToManyField(Competition)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
@@ -48,19 +59,9 @@ class Player(models.Model):
         return self.name
 
 
-class Season(models.Model):
-    year = models.IntegerField(null=False, blank=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    deleted_at = models.DateTimeField(null=True, blank=True)
-
-    def __str__(self):
-        return str(self.year)
-
-
 class Contract(models.Model):
-    player = models.ForeignKey(Player, null=False, blank=False, on_delete=models.DO_NOTHING)
-    team = models.ForeignKey(Team, null=False, blank=False, on_delete=models.DO_NOTHING)
+    player = models.ForeignKey(Player, null=False, blank=False, on_delete=models.DO_NOTHING, related_name='contracts')
+    team = models.ForeignKey(Team, null=False, blank=False, on_delete=models.DO_NOTHING, related_name='contracts')
     season = models.ForeignKey(Season, null=False, blank=False, on_delete=models.DO_NOTHING)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -82,8 +83,7 @@ class Stadium(models.Model):
 
 
 class Match(models.Model):
-    season = models.ForeignKey(Season, blank=False, null=False, on_delete=models.DO_NOTHING)
-    league = models.ForeignKey(League, null=False, blank=False, on_delete=models.DO_NOTHING)
+    competition = models.ForeignKey(Competition, null=False, blank=False, on_delete=models.DO_NOTHING)
     home_team = models.ForeignKey(Team, null=False, blank=False, on_delete=models.DO_NOTHING,
                                   related_name="home_matches")
     away_team = models.ForeignKey(Team, null=False, blank=False, on_delete=models.DO_NOTHING,
@@ -100,7 +100,8 @@ class Match(models.Model):
         verbose_name_plural = "matches"
 
     def __str__(self):
-        return f"{self.kick_off} | {self.home_team.name}  {self.home_team_goals} : {self.away_team_goals}   {self.away_team.name}"
+        return f"{self.kick_off} | {self.home_team.name}  " \
+               f"{self.home_team_goals} : {self.away_team_goals}   {self.away_team.name}"
 
 
 class MatchPlayer(models.Model):
@@ -115,30 +116,43 @@ class MatchPlayer(models.Model):
 
 class Goal(models.Model):
     match = models.ForeignKey(Match, null=False, blank=False, on_delete=models.DO_NOTHING, related_name='goals')
-    player = models.ForeignKey(Player, null=False, blank=False, on_delete=models.DO_NOTHING, related_name='goals')
+    player = models.ForeignKey(MatchPlayer, null=False, blank=False, on_delete=models.DO_NOTHING, related_name='goals')
     team = models.ForeignKey(Team, null=False, blank=False, on_delete=models.DO_NOTHING)
     is_own_goal = models.BooleanField(null=True, blank=True)
     minute = models.IntegerField(null=False, blank=False)
 
     def __str__(self):
-        return f"{self.minute}' - {self.player.name} | {self.team.name}"
+        return f"{self.minute}' - {self.player.player.name} | {self.team.name}"
 
 
 class Assist(models.Model):
     match = models.ForeignKey(Match, null=False, blank=False, on_delete=models.DO_NOTHING, related_name='assists')
-    player = models.ForeignKey(Player, null=False, blank=False, on_delete=models.DO_NOTHING, related_name='assists')
+    player = models.ForeignKey(MatchPlayer, null=False, blank=False, on_delete=models.DO_NOTHING,
+                               related_name='assists')
     team = models.ForeignKey(Team, null=False, blank=False, on_delete=models.DO_NOTHING)
     minute = models.IntegerField(null=False, blank=False)
 
     def __str__(self):
-        return f"{self.minute}' - {self.player.name} | {self.team.name}"
+        return f"{self.minute}' - {self.player.player.name} | {self.team.name}"
 
 
 class Booking(models.Model):
     match = models.ForeignKey(Match, null=False, blank=False, on_delete=models.DO_NOTHING, related_name='bookings')
-    player = models.ForeignKey(Player, null=False, blank=False, on_delete=models.DO_NOTHING, related_name='bookings')
+    player = models.ForeignKey(MatchPlayer, null=False, blank=False, on_delete=models.DO_NOTHING,
+                               related_name='bookings')
     team = models.ForeignKey(Team, null=False, blank=False, on_delete=models.DO_NOTHING)
     minute = models.IntegerField(null=False, blank=False)
 
     def __str__(self):
-        return f"{self.minute}' - {self.player.name} | {self.team.name}"
+        return f"{self.minute}' - {self.player.player.name} | {self.team.name}"
+
+
+class Substitution(models.Model):
+    match = models.ForeignKey(Match, null=False, blank=False, on_delete=models.DO_NOTHING, related_name='substitutions')
+    player = models.ForeignKey(MatchPlayer, null=False, blank=False, on_delete=models.DO_NOTHING,
+                               related_name='substitutions')
+    team = models.ForeignKey(Team, null=False, blank=False, on_delete=models.DO_NOTHING)
+    minute = models.IntegerField(null=False, blank=False)
+
+    def __str__(self):
+        return f"{self.minute}' - {self.player.player.name} | {self.team.name}"
